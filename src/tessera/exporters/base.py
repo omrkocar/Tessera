@@ -11,7 +11,7 @@ from typing import ClassVar
 
 from PIL import Image
 
-from tessera.config import OutputConfig, ProjectConfig
+from tessera.config import PIVOTS, OutputConfig, ProjectConfig
 from tessera.pack import SpriteRect
 
 ASSET_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_\-]*$")
@@ -23,15 +23,22 @@ class ExportError(Exception):
 
 @dataclass(frozen=True)
 class ExportAsset:
-    """One texture and the sprites cut from it (rects in image coordinates)."""
+    """One texture and the sprites cut from it (rects in image coordinates).
+    ``pivot`` is a named pivot ("center", "bottom", ...) or a custom (x, y)
+    in 0..1, measured from the sprite's bottom-left corner."""
     name: str
     image: Image.Image
     sprites: tuple[SpriteRect, ...]
-    pivot: str = "center"
+    pivot: str | tuple[float, float] = "center"
 
     def __post_init__(self):
         if not ASSET_NAME.match(self.name):
             raise ExportError(f"asset name {self.name!r}: use letters, digits, '_' and '-'")
+        if isinstance(self.pivot, tuple):
+            if len(self.pivot) != 2 or not all(0 <= v <= 1 for v in self.pivot):
+                raise ExportError(f"{self.name}: custom pivot must be (x, y) in 0..1")
+        elif self.pivot not in PIVOTS:
+            raise ExportError(f"{self.name}: unknown pivot '{self.pivot}'")
         for rect in self.sprites:
             if (rect.x < 0 or rect.y < 0 or rect.width < 1 or rect.height < 1
                     or rect.x + rect.width > self.image.width

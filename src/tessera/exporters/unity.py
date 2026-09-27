@@ -27,6 +27,7 @@ ALIGNMENT = {
     "center": 0, "top-left": 1, "top": 2, "top-right": 3, "left": 4,
     "right": 5, "bottom-left": 6, "bottom": 7, "bottom-right": 8,
 }
+CUSTOM_ALIGNMENT = 9
 MAX_SIZES = (32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384)
 PLATFORMS = ("DefaultTexturePlatform", "Standalone", "iOS", "Android")
 GUID_LINE = re.compile(r"^guid:\s*([0-9a-f]{32})\s*$", re.MULTILINE)
@@ -64,8 +65,12 @@ class UnityExporter(Exporter):
         single = (len(asset.sprites) == 1 and asset.sprites[0].name == asset.name
                   and (asset.sprites[0].width, asset.sprites[0].height) == (width, height)
                   and (asset.sprites[0].x, asset.sprites[0].y) == (0, 0))
-        pivot_x, pivot_y = PIVOTS[asset.pivot]
-        alignment = ALIGNMENT[asset.pivot]
+        if isinstance(asset.pivot, tuple):
+            pivot_x, pivot_y = asset.pivot
+            alignment = CUSTOM_ALIGNMENT
+        else:
+            pivot_x, pivot_y = PIVOTS[asset.pivot]
+            alignment = ALIGNMENT[asset.pivot]
 
         lines = [
             "fileFormatVersion: 2",

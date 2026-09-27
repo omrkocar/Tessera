@@ -83,6 +83,23 @@ the palette, packs the pieces, exports the texture and writes
 directions, "this" / "notThis", most specific rule first). `render_cells`
 paints cell sets for previews with the same rules.
 
+## Character rigs
+
+`tessera.rig` builds characters from parts posed per frame. Parts are painted
+in slots (recolorable roles such as skin, hair, top) and levels (0 darkest),
+usually as text rows with a legend (`Part.from_rows`). An animation is a list
+of frames, each a list of `Place(part, x, y)` in draw order; `left` can be
+left out and mirrors `right`. After compositing, the outline pass follows the
+project's `shading.outline` and outlines a part only where it borders
+transparency or a part drawn below it. A `Look` maps each slot to a color
+ramp, so one rig renders any skin, hair or clothing colors.
+
+`export_rig` renders a look, packs every frame into one texture
+(`<name>_<anim>_<direction>_<i>`, permanent once referenced) and writes
+`<name>.anim.json` (frame size, pivot, and per animation its direction, fps,
+loop flag and frame names). Pivots may be custom `(x, y)` in 0..1 from the
+bottom-left, e.g. under the feet of a frame with room below them.
+
 ## Adding a target
 
 Subclass `tessera.exporters.Exporter`, set `target`, implement
