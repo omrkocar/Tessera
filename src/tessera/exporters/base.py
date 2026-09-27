@@ -44,10 +44,18 @@ class ExportAsset:
                     or rect.x + rect.width > self.image.width
                     or rect.y + rect.height > self.image.height):
                 raise ExportError(f"sprite '{rect.name}' lies outside the {self.image.size} image")
+            if rect.border is not None:
+                left, top, right, bottom = rect.border
+                if (min(rect.border) < 0 or left + right > rect.width
+                        or top + bottom > rect.height):
+                    raise ExportError(f"sprite '{rect.name}': border {rect.border} does not fit "
+                                      f"{rect.width}x{rect.height}")
 
     @staticmethod
-    def whole(name: str, image: Image.Image, pivot: str = "center") -> "ExportAsset":
-        return ExportAsset(name, image, (SpriteRect(name, 0, 0, image.width, image.height),), pivot)
+    def whole(name: str, image: Image.Image, pivot: str = "center",
+              border: tuple[int, int, int, int] | None = None) -> "ExportAsset":
+        rect = SpriteRect(name, 0, 0, image.width, image.height, border)
+        return ExportAsset(name, image, (rect,), pivot)
 
 
 class Exporter(ABC):

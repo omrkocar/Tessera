@@ -132,7 +132,7 @@ class UnityExporter(Exporter):
             f"  alignment: {alignment}",
             f"  spritePivot: {{x: {pivot_x}, y: {pivot_y}}}",
             f"  spritePixelsToUnits: {self.project.grid.pixels_per_unit}",
-            "  spriteBorder: {x: 0, y: 0, z: 0, w: 0}",
+            f"  spriteBorder: {unity_border(asset.sprites[0] if single else None)}",
             f"  spriteGenerateFallbackPhysicsShape: {physics}",
             "  alphaUsage: 1",
             "  alphaIsTransparency: 1",
@@ -187,7 +187,7 @@ class UnityExporter(Exporter):
                     f"        height: {rect.height}",
                     f"      alignment: {alignment}",
                     f"      pivot: {{x: {pivot_x}, y: {pivot_y}}}",
-                    "      border: {x: 0, y: 0, z: 0, w: 0}",
+                    f"      border: {unity_border(rect)}",
                     "      customData: ",
                     "      outline: []",
                     "      physicsShape: []",
@@ -231,6 +231,12 @@ class UnityExporter(Exporter):
             "  assetBundleVariant: ",
         ]
         return "\n".join(lines) + "\n"
+
+
+def unity_border(rect) -> str:
+    """Unity's Vector4 border is (left, bottom, right, top)."""
+    left, top, right, bottom = (rect.border if rect is not None and rect.border else (0, 0, 0, 0))
+    return f"{{x: {left}, y: {bottom}, z: {right}, w: {top}}}"
 
 
 def existing_guid(meta: Path) -> str | None:

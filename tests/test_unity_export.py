@@ -78,3 +78,19 @@ def test_invalid_assets_and_options(project_dir):
         exporter(project_dir, colour=True).export(ExportAsset.whole("x", solid((4, 4), RED)))
     with pytest.raises(ExportError, match="unknown export target"):
         create_exporter(load_config(project_dir), "godot")
+
+
+def test_nine_slice_borders_are_written_left_bottom_right_top(project_dir):
+    exp = exporter(project_dir)
+    single = exp.meta_text(ExportAsset.whole("panel", solid((24, 24), RED), border=(5, 6, 7, 8)),
+                           guid="0" * 32)
+    assert field(single, "spriteBorder") == "{x: 5, y: 8, z: 7, w: 6}"
+    sprites = (SpriteRect("a", 0, 0, 16, 16, (4, 4, 4, 4)), SpriteRect("b", 16, 0, 16, 16))
+    sheet = exp.meta_text(ExportAsset("kit", solid((32, 16), RED), sprites), guid="0" * 32)
+    borders = re.findall(r"      border: (.*)", sheet)
+    assert borders == ["{x: 4, y: 4, z: 4, w: 4}", "{x: 0, y: 0, z: 0, w: 0}"]
+
+
+def test_border_larger_than_the_sprite_is_rejected():
+    with pytest.raises(ExportError, match="border"):
+        ExportAsset.whole("panel", solid((8, 8), RED), border=(5, 0, 5, 0))

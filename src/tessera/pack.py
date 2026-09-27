@@ -20,11 +20,14 @@ class Frame:
 
 @dataclass(frozen=True)
 class SpriteRect:
+    """``border`` is an optional nine-slice border in pixels, given as
+    (left, top, right, bottom) like the rect itself (top-left origin)."""
     name: str
     x: int
     y: int
     width: int
     height: int
+    border: tuple[int, int, int, int] | None = None
 
 
 @dataclass(frozen=True)
