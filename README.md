@@ -64,6 +64,25 @@ prefabs survive as long as sprite names stay the same. Options in the
 Verified on Unity 6000.6: imported pixels match the source exactly, and an
 8x camera render shows only palette colors (`docs/unity-check.png`).
 
+## Tile sets
+
+`tessera.tileset` builds auto-tiling sets from a drawing function:
+
+- `connected_tileset(name, "blob", 16, draw)`: 47 pieces for terrain (8
+  neighbors; a diagonal only counts between two filled cardinals).
+- `connected_tileset(name, "cardinal", 16, draw)`: 16 pieces for lines
+  (fences, walls, hedges).
+- `random_tileset(name, variants)`: one cell, random variants.
+
+`draw(mask, frame)` returns one piece; `frames` and `fps` make animated sets.
+`blob_inside(mask, size, depth, x, y)` gives a shape whose borders line up
+between neighbors, from one wrap-around depth sequence. Pieces are named
+`<set>_<mask>` (plus `_f<frame>`) and never change. `export_tileset` checks
+the palette, packs the pieces, exports the texture and writes
+`<set>.tileset.json`: the neighbor rules in engine-neutral form (compass
+directions, "this" / "notThis", most specific rule first). `render_cells`
+paints cell sets for previews with the same rules.
+
 ## Adding a target
 
 Subclass `tessera.exporters.Exporter`, set `target`, implement
