@@ -1,0 +1,32 @@
+# Demo project: shows every config section. A game keeps its own tessera.toml
+# (with its palette and sprites) in its own folder under projects/.
+
+[project]
+name = "demo"
+
+[palette]
+file = "palette.hex"          # .hex (one color per line) or GIMP .gpl
+max_colors = 16
+allow_partial_alpha = false   # only fully transparent or fully opaque pixels
+
+[grid]
+tile_size = 16
+pixels_per_unit = 16          # one tile = one world unit
+
+[shading]
+light_direction = "top-left"
+outline = "selective"         # none | dark | selective
+max_ramp = 4                  # colors per shading ramp
+
+[preview]
+scale = 8
+background = "checker"        # or a hex color
+
+[pack]
+padding = 0
+max_width = 1024
+
+[[outputs]]
+target = "unity"
+path = "../../out/unity"      # a game points this into its Unity Assets folder
+pivot = "center"
