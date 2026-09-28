@@ -114,4 +114,4 @@ python -m pytest
 
 ## License
 
-Proprietary, all rights reserved. Private repository.
+MIT, see [LICENSE](LICENSE).

@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Pixel-art pipeline: palette checks, previews, sprite-sheet packing and engine export."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "Proprietary" }
+license = { text = "MIT" }
 dependencies = ["Pillow>=10"]
 
 [project.optional-dependencies]
