@@ -32,12 +32,16 @@ class BitmapFont:
     space_width: int = 3
     line_gap: int = 1
     glyphs: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    # per-glyph spacing overrides: joining scripts (Arabic) draw their own
+    # gaps and touch their neighbors, so their glyphs use 0
+    spacings: dict[str, int] = field(default_factory=dict)
 
     @property
     def em(self) -> int:
         return self.ascent + self.descent
 
-    def add(self, char: str, rows) -> None:
+    def add(self, char: str, rows, spacing: int | None = None) -> None:
+        """Adds a glyph; ``spacing`` overrides the font's for this glyph only."""
         rows = tuple(rows)
         if len(char) != 1:
             raise FontError(f"glyph key {char!r} must be one character")
@@ -46,7 +50,13 @@ class BitmapFont:
         widths = {len(r) for r in rows}
         if len(widths) != 1:
             raise FontError(f"glyph {char!r}: rows have different lengths {sorted(widths)}")
+        if spacing is not None and spacing < 0:
+            raise FontError(f"glyph {char!r}: spacing {spacing} must not be negative")
         self.glyphs[char] = rows
+        if spacing is None:
+            self.spacings.pop(char, None)
+        else:
+            self.spacings[char] = spacing
 
     def width(self, char: str) -> int:
         if char == " ":
@@ -54,7 +64,9 @@ class BitmapFont:
         return len(self.glyphs[char][0])
 
     def advance(self, char: str) -> int:
-        return self.width(char) + (0 if char == " " else self.spacing)
+        if char == " ":
+            return self.width(char)
+        return self.width(char) + self.spacings.get(char, self.spacing)
 
     def missing(self, text: str) -> list[str]:
         return sorted({c for c in text if c != " " and c not in self.glyphs})
@@ -121,13 +133,17 @@ def build_ttf(font: BitmapFont, path: Path, units_per_pixel: int = 128) -> Path:
     for c in chars:
         pen = TTGlyphPen(None)
         drawn = False
+        left = None
         for y, row in enumerate(font.glyphs[c]):
             top = (font.ascent - y) * u          # row 0 is the top row
             for start, end in runs(row):
                 rect(pen, start * u, top - u, end * u, top)
                 drawn = True
+                left = start if left is None else min(left, start)
         glyphs[glyph_name(c)] = pen.glyph() if drawn else empty()
-        metrics[glyph_name(c)] = (font.advance(c) * u, 0)
+        # the left side bearing must be the ink's left edge: rasterizers place
+        # the outline by it, so 0 would shift a glyph with empty columns on its left
+        metrics[glyph_name(c)] = (font.advance(c) * u, (left or 0) * u)
 
     fb = FontBuilder(font.em * u, isTTF=True)
     fb.setupGlyphOrder(order)

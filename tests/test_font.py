@@ -29,6 +29,29 @@ def test_render_advances_by_width_plus_spacing():
         small_font().render("B")
 
 
+def test_a_glyph_can_override_the_spacing():
+    font = small_font()
+    font.add("-", ("...", "...", "###", "...", "...", "...", "..."), spacing=0)
+    assert font.advance("-") == 3 and font.advance("A") == 4
+    img = font.render("--")
+    assert img.size == (6, 7)
+    assert all(img.getpixel((x, 2))[3] == 255 for x in range(6)), "joined glyphs touch"
+    with pytest.raises(FontError, match="spacing"):
+        font.add("x", ("#",) * 7, spacing=-1)
+
+
+def test_ttf_keeps_empty_columns_on_the_left(tmp_path):
+    from fontTools.ttLib import TTFont
+
+    font = small_font()
+    font.add("|", (".#", ".#", ".#", ".#", ".#", "..", ".."), spacing=0)
+    path = build_ttf(font, tmp_path / "test.ttf")
+    tt = TTFont(str(path))
+    advance, lsb = tt["hmtx"]["uni007C"]
+    assert (advance, lsb) == (2 * 128, 128)
+    assert tt["glyf"]["uni007C"].xMin == lsb
+
+
 def test_ttf_rasterizes_back_to_the_same_pixels(tmp_path):
     font = small_font()
     path = build_ttf(font, tmp_path / "test.ttf")
